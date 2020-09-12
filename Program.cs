@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO.Ports;
 using System.IO;
 
 namespace DotCOM
@@ -24,7 +25,7 @@ namespace DotCOM
                 new Option<int>(
                     new string[] { "--baudrate", "-b" },
                     getDefaultValue: () => DEFAULT_BAUD,
-                    $"Communication baudrate"
+                    "Communication baudrate"
                 ),
                 new Option<string>(
                     new string[] { "--port", "-d" },
@@ -62,7 +63,18 @@ namespace DotCOM
 
         static void ListSerialPorts()
         {
-            
+            int portCount = SerialPort.GetPortNames().Length;
+            if (portCount < 1)
+            {
+                Console.WriteLine("No available ports");
+                return;
+            }
+
+            Console.WriteLine($"Found {portCount} available ports:");
+            foreach (string s in SerialPort.GetPortNames())
+            {
+                Console.WriteLine($"* {s}");
+            }
         }
     }
 }
