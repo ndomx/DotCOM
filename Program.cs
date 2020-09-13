@@ -38,15 +38,11 @@ namespace DotCOM
             lineEndingOption.AddAlias("-l");
             lineEndingOption.Argument.Arity = ArgumentArity.ExactlyOne;
 
-            var openCommand = new Command("open", "Open serial communication with the specified port");
+            // Send single command
             var singleCommand = new Command("single", "Sends a single message to the specified port");
             singleCommand.AddAlias("send");
+            singleCommand.AddAlias("send-string");
             singleCommand.AddArgument(new Argument<string>("message", "The message to be sent to the device"));
-            var listCommand = new Command("list", "Lists the available serial ports");
-
-            openCommand.AddOption(portOption);
-            openCommand.AddOption(baudOption);
-            openCommand.AddOption(paramsOption);
 
             singleCommand.AddOption(portOption);
             singleCommand.AddOption(baudOption);
@@ -66,11 +62,36 @@ namespace DotCOM
                 SendOnce(message, lineEnd);
             });
 
+            // Send bytes command
+            var sendBytesCommand = new Command("send-bytes", "Sends one or more byte values to the specified port");
+            sendBytesCommand.AddArgument(new Argument<byte[]>("bytes", "The bytes to be sent to the device. Supports both decimal and hex values"));
+
+            sendBytesCommand.AddOption(portOption);
+            sendBytesCommand.AddOption(baudOption);
+            sendBytesCommand.AddOption(paramsOption);
+
+            sendBytesCommand.Handler = CommandHandler.Create<byte[], string, int, string>((bytes, port, baudrate, @params) => {
+                if (!SetupPort(baudrate, port, @params))
+                {
+                    ConsoleUtils.Print(ConsoleColor.Yellow, "Aborted command due to error");
+                    return;
+                }
+
+                SendBytes(bytes);
+            });
+
+            var listCommand = new Command("list", "Lists the available serial ports");
             listCommand.Handler = CommandHandler.Create(ListSerialPorts);
 
-            rootCommand.AddCommand(openCommand);
+            var openCommand = new Command("open", "Open serial communication with the specified port");
+            openCommand.AddOption(portOption);
+            openCommand.AddOption(baudOption);
+            openCommand.AddOption(paramsOption);
+
             rootCommand.AddCommand(singleCommand);
+            rootCommand.AddCommand(sendBytesCommand);
             rootCommand.AddCommand(listCommand);
+            rootCommand.AddCommand(openCommand);
 
             return rootCommand.InvokeAsync(args).Result;
         }
@@ -180,6 +201,19 @@ namespace DotCOM
 
             serialPort.Open();
             serialPort.Write(message);
+            serialPort.Close();
+        }
+
+        private static void SendBytes(byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                ConsoleUtils.Error("bytes value cannot be null");
+                return;
+            }
+
+            serialPort.Open();
+            serialPort.Write(bytes, 0, bytes.Length);
             serialPort.Close();
         }
     }
