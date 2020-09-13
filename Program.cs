@@ -8,28 +8,14 @@ namespace DotCOM
 {
     public class Program
     {
-        private const ConsoleColor errorColor = ConsoleColor.Red;
-        private const ConsoleColor resultColor = ConsoleColor.Yellow;
-
-        private static ConsoleColor defaultColor;
-
         private const int DEFAULT_BAUD = 115200;
         private static int[] SUPPORTED_BAUD = { 4800, 9600, 19200, 38400, 57600, 115200 };
         private const string DEFAULT_CONFIG = "8N1";
-
-        private static string configOptionsDescription = $@"Communication parameters (defaults to {DEFAULT_CONFIG}). This option sets 4 parameters:
-        * Data bits [5 - 9]. Defaults to 8
-        * Parity: Even (E), Odd (O), or None (N). Defaults to None
-        * Stop bits [1 - 2]. Defaults to 1
-        * Flow control: None (leave blank) or Hardware (H). defaults to None
-        > Example: 7 data bits, even parity and 1 stop bit -> 7E1";
 
         private static SerialPort serialPort;
 
         private static int Main(string[] args)
         {
-            defaultColor = Console.ForegroundColor;
-
             var rootCommand = new RootCommand("A serial port cli for windows");
 
             var portOption = new Option<string>("--port", "Device portname (e.g. com12)");
@@ -73,9 +59,7 @@ namespace DotCOM
 
                 if (!SetupPort(baudrate, port, @params))
                 {
-                    Console.ForegroundColor = resultColor;
-                    Console.WriteLine("Aborted command due to error");
-                    Console.ForegroundColor = defaultColor;
+                    ConsoleUtils.Print(ConsoleColor.Yellow, "Aborted command due to error");
                     return;
                 }
 
@@ -96,9 +80,7 @@ namespace DotCOM
             int portCount = SerialPort.GetPortNames().Length;
             if (portCount < 1)
             {
-                Console.ForegroundColor = errorColor;
-                Console.WriteLine("No available ports");
-                Console.ForegroundColor = defaultColor;
+                ConsoleUtils.Error("No available ports");
                 return;
             }
 
@@ -116,10 +98,7 @@ namespace DotCOM
             // Check port name
             if (!SerialPort.GetPortNames().Contains(port.ToUpper()))
             {
-                Console.ForegroundColor = errorColor;
-                Console.WriteLine($"Could not find any COM port with name {port}");
-                Console.WriteLine("Use [list] command to get a list of available ports");
-                Console.ForegroundColor = defaultColor;
+                ConsoleUtils.Error($"Could not find any COM port with name {port}", "Use [list] command to get a list of available ports");
                 return false;
             }
 
@@ -128,9 +107,7 @@ namespace DotCOM
             // Check baud rate
             if (!SUPPORTED_BAUD.Contains(baudrate))
             {
-                Console.ForegroundColor = errorColor;
-                Console.WriteLine($"The provided baudrate is not supported (received {baudrate})");
-                Console.ForegroundColor = defaultColor;
+                ConsoleUtils.Error($"The provided baudrate is not supported (received {baudrate})");
                 return false;
             }
 
@@ -144,17 +121,13 @@ namespace DotCOM
             StopBits stopBits;
             if (!Int32.TryParse(@params[0] + "", out dataBits))
             {
-                Console.ForegroundColor = errorColor;
-                Console.WriteLine($"Invalid value for data bits (received {@params[0]})");
-                Console.ForegroundColor = defaultColor;
+                ConsoleUtils.Error($"Invalid value for data bits (received {@params[0]})");
                 return false;
             }
 
             if ((dataBits < 5) || (dataBits > 9))
             {
-                Console.ForegroundColor = errorColor;
-                Console.WriteLine("Data bits out of range (valid range: [5 .. 9])");
-                Console.ForegroundColor = defaultColor;
+                ConsoleUtils.Error("Data bits out of range (valid range: [5 .. 9])");
                 return false;
             }
 
@@ -166,9 +139,7 @@ namespace DotCOM
                 case 'O': parityBit = Parity.Odd; break;
                 case 'S': parityBit = Parity.Space; break;
                 default:
-                    Console.ForegroundColor = errorColor;
-                    Console.WriteLine($"Invalid parity parameter (received {@params[1]})");
-                    Console.ForegroundColor = defaultColor;
+                    ConsoleUtils.Error($"Invalid parity parameter (received {@params[1]})");
                     return false;
             }
 
@@ -177,9 +148,7 @@ namespace DotCOM
                 case '1': stopBits = StopBits.One; break;
                 case '2': stopBits = StopBits.Two; break;
                 default:
-                    Console.ForegroundColor = errorColor;
-                    Console.WriteLine($"Invalid stop bits parameter (received {@params[2]})");
-                    Console.ForegroundColor = defaultColor;
+                    ConsoleUtils.Error($"Invalid stop bits parameter (received {@params[2]})");
                     return false;
             }
 
@@ -205,9 +174,7 @@ namespace DotCOM
                 }
                 else
                 {
-                    Console.ForegroundColor = resultColor;
-                    Console.WriteLine("Invalid line-ending value. Skipping line-ending character");
-                    Console.ForegroundColor = defaultColor;
+                    ConsoleUtils.Print(ConsoleColor.Yellow, "Invalid line-ending value. Skipping line-ending character");
                 }
             }
 
