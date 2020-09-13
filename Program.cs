@@ -43,11 +43,14 @@ namespace DotCOM
             baudOption.Argument.SetDefaultValue(DEFAULT_BAUD);
             baudOption.Argument.Arity = ArgumentArity.ExactlyOne;
 
-            var paramsOption = new Option<string>(
-                    new string[] { "--params", "-p" },
-                    getDefaultValue: () => DEFAULT_CONFIG,
-                    "Communications parameters. Use --help for details"
-            );
+            var paramsOption = new Option<string>("--params", "Communications parameters");
+            paramsOption.AddAlias("-p");
+            paramsOption.Argument.SetDefaultValue(DEFAULT_CONFIG);
+            paramsOption.Argument.Arity = ArgumentArity.ExactlyOne;
+            
+            var lineEndingOption = new Option<string>("--line-end", "Appends a line-ending symbol at the end (valid values: LF, CRLF)");
+            lineEndingOption.AddAlias("-l");
+            lineEndingOption.Argument.Arity = ArgumentArity.ExactlyOne;
 
             var openCommand = new Command("open", "Open serial communication with the specified port");
             var singleCommand = new Command("single", "Sends a single message to the specified port");
@@ -62,8 +65,9 @@ namespace DotCOM
             singleCommand.AddOption(portOption);
             singleCommand.AddOption(baudOption);
             singleCommand.AddOption(paramsOption);
+            singleCommand.AddOption(lineEndingOption);
 
-            singleCommand.Handler = CommandHandler.Create<string, string, int, string>((message, port, baudrate, @params) => {
+            singleCommand.Handler = CommandHandler.Create<string, string, int, string, string>((message, port, baudrate, @params, lineEnd) => {
                 Console.WriteLine($"{baudrate}|{port}|{@params}");
                 Console.WriteLine($"message = {message}");
 
@@ -75,7 +79,7 @@ namespace DotCOM
                     return;
                 }
 
-                SendOnce(message);
+                SendOnce(message, lineEnd);
             });
 
             listCommand.Handler = CommandHandler.Create(ListSerialPorts);
@@ -186,8 +190,27 @@ namespace DotCOM
             return true;
         }
 
-        private static void SendOnce(string message)
+        private static void SendOnce(string message, string lineEnd)
         {
+            if (!String.IsNullOrEmpty(lineEnd))
+            {
+                lineEnd = lineEnd.ToUpper();
+                if (lineEnd == "LF")
+                {
+                    message += "\n";
+                }
+                else if (lineEnd == "CRLF")
+                {
+                    message += "\r\n";
+                }
+                else
+                {
+                    Console.ForegroundColor = resultColor;
+                    Console.WriteLine("Invalid line-ending value. Skipping line-ending character");
+                    Console.ForegroundColor = defaultColor;
+                }
+            }
+
             serialPort.Open();
             serialPort.Write(message);
             serialPort.Close();
