@@ -239,7 +239,14 @@ namespace DotCOM
             while (@continue)
             {
                 @continue = Terminal.CaptureLine(out lineBuffer);
-                Terminal.Print(lineBuffer);
+                if (String.IsNullOrEmpty(lineBuffer))
+                {
+                    Terminal.Print("<Empty>");
+                }
+                else
+                {
+                    Terminal.Print(lineBuffer);
+                }
             }
 
             Terminal.Close();
