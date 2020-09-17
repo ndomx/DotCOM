@@ -202,21 +202,18 @@ namespace DotCOM
 
         private static void SendOnce(string message, string lineEnd)
         {
-            if (!String.IsNullOrEmpty(lineEnd))
+            try
             {
-                lineEnd = lineEnd.ToUpper();
-                if (lineEnd == "LF")
+                switch (ConsoleUtils.ParseLineEnding(lineEnd))
                 {
-                    message += "\n";
+                    case LineEnd.CRLF: message += "\r\n"; break;
+                    case LineEnd.LF: message += "\n"; break;
                 }
-                else if (lineEnd == "CRLF")
-                {
-                    message += "\r\n";
-                }
-                else
-                {
-                    ConsoleUtils.Print(ConsoleColor.Yellow, "Invalid line-ending value. Skipping line-ending character");
-                }
+            }
+            catch (ArgumentException e)
+            {
+                ConsoleUtils.Error(e.Message);
+                ConsoleUtils.Print(ConsoleColor.Yellow, "Skipping line-ending symbol");
             }
 
             serialPort.Open();
