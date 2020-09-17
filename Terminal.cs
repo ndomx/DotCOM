@@ -14,8 +14,8 @@ namespace DotCOM
 
             Console.WriteLine(welcomeMessage);
 
-            inputLine = Console.CursorTop + 1;
-            outputLine = inputLine + 1;
+            inputLine = Console.CursorTop;
+            outputLine = Console.CursorTop;
         }
 
         public static void Init()
@@ -32,7 +32,7 @@ namespace DotCOM
 
         public static void Print(string message)
         {
-            Console.SetCursorPosition(0, outputLine++);
+            Console.SetCursorPosition(0, ++outputLine);
             Console.WriteLine(message);
 
             if (outputLine > Console.WindowHeight)
@@ -45,8 +45,9 @@ namespace DotCOM
 
         public static bool CaptureLine(out string buffer)
         {
+            Console.SetCursorPosition(0, inputLine);
+            
             buffer = String.Empty;
-
             ConsoleKeyInfo input = new ConsoleKeyInfo();
             while (input.Key != ConsoleKey.Escape)
             {
@@ -55,6 +56,12 @@ namespace DotCOM
                 {
                     OnKeyEnter();
                     return true;
+                }
+                else if (input.Key == ConsoleKey.Backspace)
+                {
+                    buffer = buffer.Remove(buffer.Length - 1);
+                    Console.Write(' ');
+                    Console.SetCursorPosition(Console.CursorLeft-1, Console.CursorTop);
                 }
                 else if (Char.IsLetterOrDigit(input.KeyChar))
                 {
@@ -73,7 +80,7 @@ namespace DotCOM
 
         private static void OnKeyEnter()
         {
-
+            CleanInputLine();
         }
     }
 }

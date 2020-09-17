@@ -14,6 +14,8 @@ namespace DotCOM
 
         private static SerialPort serialPort;
 
+        private static string lineBuffer = String.Empty;
+
         private static int Main(string[] args)
         {
             var rootCommand = new RootCommand("A serial port cli for windows");
@@ -87,6 +89,18 @@ namespace DotCOM
             openCommand.AddOption(portOption);
             openCommand.AddOption(baudOption);
             openCommand.AddOption(paramsOption);
+
+            openCommand.Handler = CommandHandler.Create<string, int, string>((port, baudrate, @params) => {
+                /*
+                if (!SetupPort(baudrate, port, @params))
+                {
+                    ConsoleUtils.Print(ConsoleColor.Yellow, "Aborted command due to error");
+                    return;
+                }
+                */
+
+                OpenTerminal();
+            });
 
             rootCommand.AddCommand(singleCommand);
             rootCommand.AddCommand(sendBytesCommand);
@@ -215,6 +229,20 @@ namespace DotCOM
             serialPort.Open();
             serialPort.Write(bytes, 0, bytes.Length);
             serialPort.Close();
+        }
+
+        private static void OpenTerminal()
+        {
+            Terminal.Init();
+            
+            var @continue = true;
+            while (@continue)
+            {
+                @continue = Terminal.CaptureLine(out lineBuffer);
+                Terminal.Print(lineBuffer);
+            }
+
+            Terminal.Close();
         }
     }
 }
