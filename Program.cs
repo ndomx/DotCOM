@@ -20,6 +20,7 @@ namespace DotCOM
         {
             var rootCommand = new RootCommand("A serial port cli for windows");
 
+            // Options
             var portOption = new Option<string>("--port", "Device portname (e.g. com12)");
             portOption.AddAlias("--device");
             portOption.AddAlias("-d");
@@ -39,6 +40,11 @@ namespace DotCOM
             var lineEndingOption = new Option<string>("--line-end", "Appends a line-ending symbol at the end (valid values: LF, CRLF)");
             lineEndingOption.AddAlias("-l");
             lineEndingOption.Argument.Arity = ArgumentArity.ExactlyOne;
+
+            var echoOption = new Option<bool>("--echo", "Echoes back the message");
+            echoOption.AddAlias("-e");
+            echoOption.Argument.SetDefaultValue(true);
+            echoOption.Argument.Arity = ArgumentArity.ExactlyOne;
 
             // Send single command
             var singleCommand = new Command("single", "Sends a single message to the specified port");
