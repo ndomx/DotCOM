@@ -7,6 +7,9 @@ namespace DotCOM
         private static int inputLine = 0;
         private static int outputLine = 0;
 
+        private static bool isOpen = false;
+        public static bool IsOpen { get => isOpen; }
+
         public static void Init(string welcomeMessage)
         {
             Console.Clear();
@@ -16,6 +19,8 @@ namespace DotCOM
 
             inputLine = Console.CursorTop;
             outputLine = Console.CursorTop;
+
+            isOpen = true;
         }
 
         public static void Init()
@@ -26,12 +31,19 @@ namespace DotCOM
         public static void Close()
         {
             Console.Clear();
-            Console.SetCursorPosition(0,0);
+            Console.SetCursorPosition(0, 0);
             Console.WriteLine("Done");
+
+            isOpen = false;
         }
 
         public static void Print(string message)
         {
+            if (!IsOpen)
+            {
+                throw new Exception("Terminal has not been initialized");
+            }
+
             Console.SetCursorPosition(0, ++outputLine);
             Console.WriteLine(message);
             Console.SetCursorPosition(0, inputLine);
@@ -46,7 +58,7 @@ namespace DotCOM
         public static bool CaptureLine(out string buffer)
         {
             Console.SetCursorPosition(0, inputLine);
-            
+
             buffer = String.Empty;
             ConsoleKeyInfo input = new ConsoleKeyInfo();
             while (input.Key != ConsoleKey.Escape)
@@ -61,7 +73,7 @@ namespace DotCOM
                 {
                     buffer = buffer.Remove(buffer.Length - 1);
                     Console.Write(' ');
-                    Console.SetCursorPosition(Console.CursorLeft-1, Console.CursorTop);
+                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                 }
                 else if (Char.IsLetterOrDigit(input.KeyChar))
                 {
