@@ -34,13 +34,13 @@ namespace DotCOM
         {
             Console.SetCursorPosition(0, ++outputLine);
             Console.WriteLine(message);
+            Console.SetCursorPosition(0, inputLine);
 
             if (outputLine > Console.WindowHeight)
             {
-                inputLine++;
+                inputLine = Console.WindowTop;
             }
 
-            Console.SetCursorPosition(0, inputLine);
         }
 
         public static bool CaptureLine(out string buffer)
@@ -57,7 +57,7 @@ namespace DotCOM
                     OnKeyEnter();
                     return true;
                 }
-                else if (input.Key == ConsoleKey.Backspace)
+                else if (input.Key == ConsoleKey.Backspace && buffer.Length > 0)
                 {
                     buffer = buffer.Remove(buffer.Length - 1);
                     Console.Write(' ');
