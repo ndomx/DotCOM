@@ -3,7 +3,7 @@ using System;
 namespace DotCOM
 {
     public enum LineEnd { CRLF, LF, NONE };
-    
+
     public static class ConsoleUtils
     {
         public static void Print(ConsoleColor color, params string[] messages)
@@ -16,6 +16,12 @@ namespace DotCOM
             }
 
             Console.ForegroundColor = currentColor;
+        }
+
+        public static void Print(params string[] messages)
+        {
+            Console.ResetColor();
+            Print(Console.ForegroundColor, messages);
         }
 
         public static void Error(params string[] messages)
