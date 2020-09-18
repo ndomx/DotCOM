@@ -60,10 +60,7 @@ namespace DotCOM
 
             Console.SetCursorPosition(0, Console.WindowTop);
             ConsoleUtils.Print(titleMessages);
-            // Console.Write(buffer);
             RestoreInputLine();
-
-            // Console.SetCursorPosition(currentCursorLeft, InputLine);
         }
 
         public bool CaptureLine()
