@@ -2,33 +2,42 @@ using System;
 
 namespace DotCOM
 {
-    public static class Terminal
+    public class Terminal
     {
-        private static int inputLine = 0;
-        private static int outputLine = 0;
+        private string[] titleMessages;
+        private int outputLine = 0;
 
-        private static bool isOpen = false;
-        public static bool IsOpen { get => isOpen; }
+        private int InputLine { get => Console.WindowTop + titleMessages.Length; }
 
-        public static void Init(string welcomeMessage)
+        private bool isOpen = false;
+        public bool IsOpen { get => isOpen; }
+
+        private static string buffer;
+        public static string Buffer { get => buffer; }
+
+        public Terminal(params string[] welcomeMessages)
+        {
+            titleMessages = new string[welcomeMessages.Length];
+            welcomeMessages.CopyTo(titleMessages, 0);
+        }
+
+        public void Init()
         {
             Console.Clear();
             Console.SetCursorPosition(0, 0);
+            ConsoleUtils.Print(titleMessages);
 
-            Console.WriteLine(welcomeMessage);
-
-            inputLine = Console.CursorTop;
-            outputLine = Console.CursorTop;
+            outputLine = InputLine + 1;
 
             isOpen = true;
         }
 
-        public static void Init()
+        public static Terminal Create()
         {
-            Init("Welcome to DotCOM. Press <ESC> to exit");
+            return new Terminal("Welcome to DotCOM. Press <ESC> to exit");
         }
 
-        public static void Close()
+        public void Close()
         {
             Console.Clear();
             Console.SetCursorPosition(0, 0);
@@ -37,29 +46,31 @@ namespace DotCOM
             isOpen = false;
         }
 
-        public static void Print(string message)
+        public void Print(string message)
         {
             if (!IsOpen)
             {
                 throw new Exception("Terminal has not been initialized");
             }
 
-            Console.SetCursorPosition(0, ++outputLine);
+            var currentCursorLeft = Console.CursorLeft;
+
+            Console.SetCursorPosition(0, outputLine++);
             Console.WriteLine(message);
-            Console.SetCursorPosition(0, inputLine);
 
-            if (outputLine > Console.WindowHeight)
-            {
-                inputLine = Console.WindowTop;
-            }
+            Console.SetCursorPosition(0, Console.WindowTop);
+            ConsoleUtils.Print(titleMessages);
+            // Console.Write(buffer);
+            RestoreInputLine();
 
+            // Console.SetCursorPosition(currentCursorLeft, InputLine);
         }
 
-        public static bool CaptureLine(out string buffer)
+        public bool CaptureLine()
         {
-            Console.SetCursorPosition(0, inputLine);
-
             buffer = String.Empty;
+            CleanInputLine();
+
             ConsoleKeyInfo input = new ConsoleKeyInfo();
             while (input.Key != ConsoleKey.Escape)
             {
@@ -75,7 +86,7 @@ namespace DotCOM
                     Console.Write(' ');
                     Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                 }
-                else if (Char.IsLetterOrDigit(input.KeyChar))
+                else
                 {
                     buffer += input.KeyChar;
                 }
@@ -84,13 +95,22 @@ namespace DotCOM
             return false;
         }
 
-        private static void CleanInputLine()
+        private void CleanInputLine()
         {
-            Console.SetCursorPosition(0, inputLine);
+            Console.SetCursorPosition(0, InputLine);
             Console.Write(new String(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, InputLine);
         }
 
-        private static void OnKeyEnter()
+        private void RestoreInputLine()
+        {
+            Console.SetCursorPosition(0, InputLine);
+            Console.Write(buffer);
+            Console.Write(new String(' ', Console.WindowWidth - buffer.Length));
+            Console.SetCursorPosition(buffer.Length, InputLine);
+        }
+
+        private void OnKeyEnter()
         {
             CleanInputLine();
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO.Ports;
@@ -13,8 +14,6 @@ namespace DotCOM
         private const string DEFAULT_CONFIG = "8N1";
 
         private static SerialPort serialPort;
-
-        private static string lineBuffer = String.Empty;
 
         private static int Main(string[] args)
         {
@@ -95,8 +94,10 @@ namespace DotCOM
             openCommand.AddOption(portOption);
             openCommand.AddOption(baudOption);
             openCommand.AddOption(paramsOption);
+            openCommand.AddOption(lineEndingOption);
+            openCommand.AddOption(echoOption);
 
-            openCommand.Handler = CommandHandler.Create<string, int, string>((port, baudrate, @params) => {
+            openCommand.Handler = CommandHandler.Create<string, int, string, string, bool>((port, baudrate, @params, lineEnd, echo) => {
                 /*
                 if (!SetupPort(baudrate, port, @params))
                 {
@@ -105,7 +106,7 @@ namespace DotCOM
                 }
                 */
 
-                OpenTerminal();
+                OpenTerminal(lineEnd, echo);
             });
 
             rootCommand.AddCommand(singleCommand);
@@ -234,25 +235,82 @@ namespace DotCOM
             serialPort.Close();
         }
 
-        private static void OpenTerminal()
+        private static void OpenTerminal(string lineEnd, bool echo = true)
         {
-            Terminal.Init();
-            
+            Console.WriteLine($"lineEnd = {lineEnd}");
+            Console.WriteLine($"echo = {echo}");
+            var lineEndString = String.Empty;
+            try
+            {
+                switch (ConsoleUtils.ParseLineEnding(lineEnd))
+                {
+                    case LineEnd.CRLF: lineEndString += "\r\n"; break;
+                    case LineEnd.LF: lineEndString += "\n"; break;
+                }
+            }
+            catch (ArgumentException e)
+            {
+                ConsoleUtils.Error(e.Message);
+                ConsoleUtils.Print(ConsoleColor.Yellow, "Skipping line-ending symbol");
+            }
+
+            // serialPort.Open();
+
+            var terminal = Terminal.Create();
+            terminal.Init();
+        
             var @continue = true;
+            Thread serialThread = new Thread(() => ReadSerialPort(terminal, in @continue));
+            serialThread.Start();
             while (@continue)
             {
-                @continue = Terminal.CaptureLine(out lineBuffer);
-                if (String.IsNullOrEmpty(lineBuffer))
+                @continue = terminal.CaptureLine();
+                // serialPort.Write(lineBuffer + lineEndString);
+                if (echo)
                 {
-                    Terminal.Print("<Empty>");
-                }
-                else
-                {
-                    Terminal.Print(lineBuffer);
+                    if (String.IsNullOrEmpty(Terminal.Buffer))
+                    {
+                        terminal.Print("<Empty>");
+                    }
+                    else
+                    {
+                        terminal.Print(Terminal.Buffer);
+                    }
                 }
             }
 
-            Terminal.Close();
+            CleanUp(terminal, serialThread);
+        }
+
+        private static void CleanUp(Terminal terminal, Thread serialThread)
+        {
+            serialThread.Join();
+            // serialPort.Close();
+
+            if (terminal.IsOpen)
+            {
+                terminal.Close();
+            }
+        }
+
+        private static void ReadSerialPort(Terminal terminal, in bool @continue)
+        {
+            int i = 0;
+            string message = String.Empty;
+            while (@continue)
+            {
+                try
+                {
+                    // string message = serialPort.ReadLine();
+                    message = "Time ellapsed= " + i++;
+                    terminal.Print(message);
+                    Thread.Sleep(2050);
+                }
+                catch (TimeoutException)
+                {
+                    break;
+                }
+            }
         }
     }
 }
