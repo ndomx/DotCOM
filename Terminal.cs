@@ -41,7 +41,7 @@ namespace DotCOM
         {
             if (!IsOpen)
             {
-                throw new Exception("Terminal has not been initialized");
+                throw new TerminalClosedException("Terminal has not been initialized");
             }
 
             var currentCursorLeft = Console.CursorLeft;

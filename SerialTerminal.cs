@@ -78,6 +78,11 @@ namespace DotCOM
                     // Display some message
                     break;
                 }
+                catch (TerminalClosedException)
+                {
+                    // Tried to print a message after the terminal had closed
+                    break;
+                }
             }
         }
     }
