@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO.Ports;
@@ -237,16 +236,10 @@ namespace DotCOM
 
         private static void OpenTerminal(string lineEnd, bool echo = true)
         {
-            Console.WriteLine($"lineEnd = {lineEnd}");
-            Console.WriteLine($"echo = {echo}");
-            var lineEndString = String.Empty;
+            var lineEndValue = LineEnd.NONE;
             try
             {
-                switch (ConsoleUtils.ParseLineEnding(lineEnd))
-                {
-                    case LineEnd.CRLF: lineEndString += "\r\n"; break;
-                    case LineEnd.LF: lineEndString += "\n"; break;
-                }
+                lineEndValue = ConsoleUtils.ParseLineEnding(lineEnd);
             }
             catch (ArgumentException e)
             {
@@ -254,60 +247,8 @@ namespace DotCOM
                 ConsoleUtils.Print(ConsoleColor.Yellow, "Skipping line-ending symbol");
             }
 
-            serialPort.Open();
-
-            var terminal = Terminal.Create();
-            terminal.Init();
-        
-            var @continue = true;
-            Thread serialThread = new Thread(() => ReadSerialPort(terminal, in @continue));
-            serialThread.Start();
-            while (@continue)
-            {
-                @continue = terminal.CaptureLine();
-                serialPort.Write(Terminal.Buffer + lineEndString);
-                if (echo)
-                {
-                    if (String.IsNullOrEmpty(Terminal.Buffer))
-                    {
-                        terminal.Print("<Empty>");
-                    }
-                    else
-                    {
-                        terminal.Print(Terminal.Buffer);
-                    }
-                }
-            }
-
-            CleanUp(terminal, serialThread);
-        }
-
-        private static void CleanUp(Terminal terminal, Thread serialThread)
-        {
-            serialThread.Join();
-            serialPort.Close();
-
-            if (terminal.IsOpen)
-            {
-                terminal.Close();
-            }
-        }
-
-        private static void ReadSerialPort(Terminal terminal, in bool @continue)
-        {
-            string message = String.Empty;
-            while (@continue)
-            {
-                try
-                {
-                    message = serialPort.ReadLine();
-                    terminal.Print(message);
-                }
-                catch (TimeoutException)
-                {
-                    break;
-                }
-            }
+            var serialTerminal = new SerialTerminal(serialPort, lineEndValue, echo);
+            serialTerminal.Init("Welcome to DotCOM. Press <ESC> to exit");
         }
     }
 }
