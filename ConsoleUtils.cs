@@ -46,5 +46,17 @@ namespace DotCOM
 
             return lineEndSymbol;
         }
+
+        public static string GetLineEnd(LineEnd lineEndValue)
+        {
+            switch (lineEndValue)
+            {
+                case LineEnd.CRLF: return "\r\n";
+                case LineEnd.LF: return "\n";
+                case LineEnd.NONE: return String.Empty;
+            }
+
+            throw new ArgumentException("Invalid LineEnd value");
+        }
     }
 }
