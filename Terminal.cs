@@ -9,41 +9,32 @@ namespace DotCOM
 
         private int InputLine { get => Console.WindowTop + titleMessages.Length; }
 
-        private bool isOpen = false;
-        public bool IsOpen { get => isOpen; }
+        public bool IsOpen { get; protected set; }
 
         private static string buffer;
         public static string Buffer { get => buffer; }
 
-        public Terminal(params string[] welcomeMessages)
+        public virtual void Init(params string[] welcomeMessages)
         {
             titleMessages = new string[welcomeMessages.Length];
             welcomeMessages.CopyTo(titleMessages, 0);
-        }
 
-        public void Init()
-        {
             Console.Clear();
             Console.SetCursorPosition(0, 0);
-            ConsoleUtils.Print(titleMessages);
+            ConsoleUtils.Print(welcomeMessages);
 
             outputLine = InputLine + 1;
 
-            isOpen = true;
+            IsOpen = true;
         }
 
-        public static Terminal Create()
-        {
-            return new Terminal("Welcome to DotCOM. Press <ESC> to exit");
-        }
-
-        public void Close()
+        public virtual void Close()
         {
             Console.Clear();
             Console.SetCursorPosition(0, 0);
             Console.WriteLine("Done");
 
-            isOpen = false;
+            IsOpen = false;
         }
 
         public void Print(string message)
