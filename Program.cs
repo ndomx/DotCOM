@@ -9,9 +9,10 @@ namespace DotCOM
 {
     public class Program
     {
-        private const int DEFAULT_BAUD = 115200;
         private static int[] SUPPORTED_BAUD = { 4800, 9600, 19200, 38400, 57600, 115200 };
+        private const int DEFAULT_BAUD = 115200;
         private const string DEFAULT_CONFIG = "8N1";
+        private const string DEFAULT_LINE_ENDING = "NONE";
 
         private static SerialPort serialPort;
 
@@ -38,6 +39,7 @@ namespace DotCOM
             
             var lineEndingOption = new Option<string>("--line-end", "Appends a line-ending symbol at the end (valid values: LF, CRLF)");
             lineEndingOption.AddAlias("-l");
+            lineEndingOption.Argument.SetDefaultValue(DEFAULT_LINE_ENDING);
             lineEndingOption.Argument.Arity = ArgumentArity.ExactlyOne;
 
             var echoOption = new Option<bool>("--echo", "Echoes back the message");
@@ -293,16 +295,13 @@ namespace DotCOM
 
         private static void ReadSerialPort(Terminal terminal, in bool @continue)
         {
-            // int i = 0;
             string message = String.Empty;
             while (@continue)
             {
                 try
                 {
                     message = serialPort.ReadLine();
-                    // message = "Time ellapsed= " + i++;
                     terminal.Print(message);
-                    // Thread.Sleep(2050);
                 }
                 catch (TimeoutException)
                 {
