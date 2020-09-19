@@ -98,13 +98,11 @@ namespace DotCOM
             openCommand.AddOption(echoOption);
 
             openCommand.Handler = CommandHandler.Create<string, int, string, string, bool>((port, baudrate, @params, lineEnd, echo) => {
-                /*
                 if (!SetupPort(baudrate, port, @params))
                 {
                     ConsoleUtils.Print(ConsoleColor.Yellow, "Aborted command due to error");
                     return;
                 }
-                */
 
                 OpenTerminal(lineEnd, echo);
             });
@@ -254,7 +252,7 @@ namespace DotCOM
                 ConsoleUtils.Print(ConsoleColor.Yellow, "Skipping line-ending symbol");
             }
 
-            // serialPort.Open();
+            serialPort.Open();
 
             var terminal = Terminal.Create();
             terminal.Init();
@@ -265,7 +263,7 @@ namespace DotCOM
             while (@continue)
             {
                 @continue = terminal.CaptureLine();
-                // serialPort.Write(lineBuffer + lineEndString);
+                serialPort.Write(Terminal.Buffer + lineEndString);
                 if (echo)
                 {
                     if (String.IsNullOrEmpty(Terminal.Buffer))
@@ -285,7 +283,7 @@ namespace DotCOM
         private static void CleanUp(Terminal terminal, Thread serialThread)
         {
             serialThread.Join();
-            // serialPort.Close();
+            serialPort.Close();
 
             if (terminal.IsOpen)
             {
@@ -295,16 +293,16 @@ namespace DotCOM
 
         private static void ReadSerialPort(Terminal terminal, in bool @continue)
         {
-            int i = 0;
+            // int i = 0;
             string message = String.Empty;
             while (@continue)
             {
                 try
                 {
-                    // string message = serialPort.ReadLine();
-                    message = "Time ellapsed= " + i++;
+                    message = serialPort.ReadLine();
+                    // message = "Time ellapsed= " + i++;
                     terminal.Print(message);
-                    Thread.Sleep(2050);
+                    // Thread.Sleep(2050);
                 }
                 catch (TimeoutException)
                 {
