@@ -135,6 +135,7 @@ namespace DotCOM
         private static bool SetupPort(int baudrate, string port, string @params)
         {
             serialPort = new SerialPort();
+            serialPort.ReadTimeout = SerialTerminal.READ_TIMEOUT_MS;
 
             // Check port name
             if (!SerialPort.GetPortNames().Contains(port.ToUpper()))

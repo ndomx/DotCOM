@@ -6,6 +6,8 @@ namespace DotCOM
 {
     public class SerialTerminal : Terminal
     {
+        public const int READ_TIMEOUT_MS = 200;
+
         private SerialPort serialPort;
         private Thread readThread;
 
@@ -76,7 +78,7 @@ namespace DotCOM
                 catch (TimeoutException)
                 {
                     // Display some message
-                    break;
+                    continue;
                 }
                 catch (TerminalClosedException)
                 {
