@@ -6,7 +6,7 @@ namespace DotCOM
 {
     public class SerialTerminal : Terminal
     {
-        public const int READ_TIMEOUT_MS = 200;
+        private const int READ_TIMEOUT_MS = 200;
 
         private SerialPort serialPort;
         private Thread readThread;
@@ -18,6 +18,8 @@ namespace DotCOM
         public SerialTerminal(SerialPort port, LineEnd lineEnd, bool echo)
         {
             serialPort = port;
+            serialPort.ReadTimeout = READ_TIMEOUT_MS;
+
             LineEnding = lineEnd;
             this.echo = echo;
 
