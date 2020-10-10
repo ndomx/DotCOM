@@ -6,7 +6,7 @@ namespace DotCOM
 {
     public class SerialTerminal : Terminal
     {
-        private const int READ_TIMEOUT_MS = 200;
+        private const int READ_TIMEOUT_MS = 2000;
 
         private SerialPort serialPort;
         private Thread readThread;
@@ -38,9 +38,8 @@ namespace DotCOM
         public override void Close()
         {
             IsOpen = false;
-            readThread.Join();
-
             serialPort.Close();
+            readThread.Join();
 
             base.Close();
         }
@@ -75,22 +74,28 @@ namespace DotCOM
                 try
                 {
                     message = serialPort.ReadLine();
+                    if (!String.IsNullOrEmpty(message) && IsOpen)
+                    {
+                        Print(message);
+                    }
                 }
                 catch (TimeoutException)
                 {
                     message = serialPort.ReadExisting();
+                    if (!String.IsNullOrEmpty(message) && IsOpen)
+                    {
+                        Print(message);
+                    }
                 }
                 catch (TerminalClosedException)
                 {
                     // Tried to print a message after the terminal had closed
                     break;
                 }
-                finally
+                catch (OperationCanceledException)
                 {
-                    if (!String.IsNullOrEmpty(message) && IsOpen)
-                    {
-                        Print(message);
-                    }
+                    // Serial port was closed on the main thread
+                    break;
                 }
             }
         }
