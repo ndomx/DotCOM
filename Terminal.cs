@@ -14,6 +14,8 @@ namespace DotCOM
         private static string buffer;
         public static string Buffer { get => buffer; }
 
+        private readonly object cursorLock = new object();
+
         public virtual void Init(params string[] welcomeMessages)
         {
             titleMessages = new string[welcomeMessages.Length];
@@ -44,14 +46,17 @@ namespace DotCOM
                 throw new TerminalClosedException("Terminal has not been initialized");
             }
 
-            var currentCursorLeft = Console.CursorLeft;
+            lock (cursorLock)
+            {
+                var currentCursorLeft = Console.CursorLeft;
 
-            Console.SetCursorPosition(0, outputLine++);
-            Console.WriteLine(message);
+                Console.SetCursorPosition(0, outputLine++);
+                Console.WriteLine(message);
 
-            Console.SetCursorPosition(0, Console.WindowTop);
-            ConsoleUtils.Print(titleMessages);
-            RestoreInputLine();
+                Console.SetCursorPosition(0, Console.WindowTop);
+                ConsoleUtils.Print(titleMessages);
+                RestoreInputLine();
+            }
         }
 
         public bool CaptureLine()

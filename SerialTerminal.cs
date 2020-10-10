@@ -75,17 +75,22 @@ namespace DotCOM
                 try
                 {
                     message = serialPort.ReadLine();
-                    Print(message);
                 }
                 catch (TimeoutException)
                 {
-                    // Display some message
-                    continue;
+                    message = serialPort.ReadExisting();
                 }
                 catch (TerminalClosedException)
                 {
                     // Tried to print a message after the terminal had closed
                     break;
+                }
+                finally
+                {
+                    if (!String.IsNullOrEmpty(message) && IsOpen)
+                    {
+                        Print(message);
+                    }
                 }
             }
         }
