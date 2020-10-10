@@ -4,6 +4,8 @@ namespace DotCOM
 {
     public class Terminal
     {
+        private const string DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
+
         private string[] titleMessages;
         private int outputLine = 0;
 
@@ -13,6 +15,8 @@ namespace DotCOM
 
         private static string buffer;
         public static string Buffer { get => buffer; }
+
+        private string Now { get => DateTime.Now.ToString(DATETIME_FORMAT); }
 
         private readonly object cursorLock = new object();
 
@@ -51,6 +55,7 @@ namespace DotCOM
                 var currentCursorLeft = Console.CursorLeft;
 
                 Console.SetCursorPosition(0, outputLine++);
+                Console.Write($"{Now} -> ");
                 Console.WriteLine(message);
 
                 Console.SetCursorPosition(0, Console.WindowTop);
