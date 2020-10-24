@@ -4,6 +4,8 @@
     <AssemblyName>dotcom</AssemblyName>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
