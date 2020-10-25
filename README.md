@@ -18,7 +18,7 @@ For a fair amount of time, I opted to use Minicom on my WSL machine, but it cras
 ## About
 This program was built using the System.CommandLine and System.IO.Ports tools. The System.CommandLine library is quiet new, and not properly documented yet. You'll find this project to be a good example of a fairly complex program, and a real use case as well. However, there's a chance this program doesn't represent the best practices of System.CommandLine, as I couldn't find a better real example.
 
-For the moment, **I don't intend** to publish an official release on GitHub, nor am I going to release this program. If you wish to use this tool, you'll have to build it yourself.
+For the moment, **I don't intend** to publish an official release on GitHub, nor am I going to release this program by any other means. If you wish to use this tool, you'll have to build it yourself.
 
 ## Usage
 ~~~
