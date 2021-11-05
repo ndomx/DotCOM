@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.IO.Ports;
 
 namespace DotCOM
@@ -9,44 +8,25 @@ namespace DotCOM
         private const int READ_TIMEOUT_MS = 2000;
 
         private SerialPort serialPort;
-        private Thread readThread;
 
         private readonly bool echo;
 
         public LineEnd LineEnding { get; set; }
 
-        public SerialTerminal(SerialPort port, LineEnd lineEnd, bool echo)
+        public SerialTerminal(ref SerialPort port, LineEnd lineEnd, bool echo)
         {
             serialPort = port;
             serialPort.ReadTimeout = READ_TIMEOUT_MS;
+            serialPort.DataReceived += new SerialDataReceivedEventHandler(OnReceiveData);
 
             LineEnding = lineEnd;
             this.echo = echo;
-
-            readThread = new Thread(ReadSerialPort);
         }
 
         public override void Init(params string[] welcomeMessages)
         {
-            serialPort.Open();
             base.Init(welcomeMessages);
-
-            Open();
-            Close();
-        }
-
-        public override void Close()
-        {
-            IsOpen = false;
-            serialPort.Close();
-            readThread.Join();
-
-            base.Close();
-        }
-
-        private void Open()
-        {
-            readThread.Start();
+            serialPort.Open();
 
             string lineEnd = ConsoleUtils.GetLineEnd(LineEnding);
             while (CaptureLine())
@@ -64,40 +44,27 @@ namespace DotCOM
                     }
                 }
             }
+
+            Close();
         }
 
-        private void ReadSerialPort()
+        public override void Close()
         {
-            var message = String.Empty;
-            while (IsOpen)
-            {
-                try
-                {
-                    message = serialPort.ReadLine();
-                    if (!String.IsNullOrEmpty(message) && IsOpen)
-                    {
-                        Print(message);
-                    }
-                }
-                catch (TimeoutException)
-                {
-                    message = serialPort.ReadExisting();
-                    if (!String.IsNullOrEmpty(message) && IsOpen)
-                    {
-                        Print(message);
-                    }
-                }
-                catch (TerminalClosedException)
-                {
-                    // Tried to print a message after the terminal had closed
-                    break;
-                }
-                catch (OperationCanceledException)
-                {
-                    // Serial port was closed on the main thread
-                    break;
-                }
-            }
+            IsOpen = false;
+            serialPort.Close();
+
+            base.Close();
+        }
+
+        private void OnReceiveData(object sender, SerialDataReceivedEventArgs args)
+        {
+            var port = (SerialPort) sender;
+            if (!port.IsOpen) return;
+
+            var data = port.ReadExisting();
+            if (!IsOpen) return;
+
+            Print(data);
         }
     }
 }

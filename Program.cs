@@ -247,7 +247,7 @@ namespace DotCOM
                 ConsoleUtils.Print(ConsoleColor.Yellow, "Skipping line-ending symbol");
             }
 
-            var serialTerminal = new SerialTerminal(serialPort, lineEndValue, echo);
+            var serialTerminal = new SerialTerminal(ref serialPort, lineEndValue, echo);
             serialTerminal.Init("Welcome to DotCOM. Press <ESC> to exit");
         }
     }
